@@ -43,15 +43,24 @@ def get_next_product_id():
     return int(response['Attributes']['last_id'])
 
 # POST endpoint to add products
+from decimal import Decimal
+
 @app.post("/add-products")
 def add_products(products: List[Product]):
     with product_table.batch_writer() as batch:
         for product in products:
             new_id = get_next_product_id()
             item = product.dict()
+
+            # Convert float values to Decimal
+            for key in ['price', 'rating']:
+                item[key] = Decimal(str(item[key]))
+
             item['id'] = new_id
             batch.put_item(Item=item)
     return {"message": "Products added successfully"}
+
+
 
 # GET endpoint to fetch all products
 @app.get("/get-products")
