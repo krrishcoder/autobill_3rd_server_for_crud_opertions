@@ -194,18 +194,18 @@ class Plan(BaseModel):
     is_active: bool = True
     description: Optional[str] = None
 
-# class SubscriptionPlan(BaseModel):
-#     plan_id: str
-#     name: str
-#     price: str
-#     currency: str
-#     duration_months: int
-#     features: PlanFeatures
-#     color: str
-#     popular: bool
-#     is_active: bool
-#     created_at: str
-#     updated_at: str
+class SubscriptionPlan(BaseModel):
+    plan_id: str
+    name: str
+    price: str
+    currency: str
+    duration_months: int
+    features: PlanFeatures
+    color: str
+    popular: bool
+    is_active: bool
+    created_at: str
+    updated_at: str
 
 class UsageStats(BaseModel):
     detections_used_today: int = 0
@@ -387,7 +387,7 @@ async def create_subscription_record(user_data: UserRegistration, plan_data: Dic
 async def get_plan_by_id(plan_id: str) -> Optional[Dict[str, Any]]:
     """Get plan details by ID"""
     try:
-        response = plans_table.get_item(Key={'plan_id': plan_id})
+        response = plan_table.get_item(Key={'plan_id': plan_id})
         return response.get('Item')
     except ClientError as e:
         logger.error(f"Error fetching plan: {e}")
