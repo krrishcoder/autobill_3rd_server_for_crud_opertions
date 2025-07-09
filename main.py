@@ -27,7 +27,7 @@ app.add_middleware(
 dynamodb = boto3.resource('dynamodb')  # or your region
 product_table = dynamodb.Table('Products')
 counter_table = dynamodb.Table('ProductCounter')  # to store last used ID
-plan_table = dynamodb.Table('SubscriptionPlans')
+plan_table = dynamodb.Table('PlanConfigurations')  # to store subscription plans
 
 
 
