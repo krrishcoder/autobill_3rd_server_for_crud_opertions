@@ -4,6 +4,11 @@ from pydantic import BaseModel
 from typing import List
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+from uuid import uuid4
+from datetime import datetime
+from typing import Optional, List
+
+
 
 app = FastAPI()
 
@@ -22,6 +27,8 @@ app.add_middleware(
 dynamodb = boto3.resource('dynamodb')  # or your region
 product_table = dynamodb.Table('Products')
 counter_table = dynamodb.Table('ProductCounter')  # to store last used ID
+plan_table = dynamodb.Table('SubscriptionPlans')
+
 
 
 # Product model (id will be auto-generated)
@@ -31,6 +38,42 @@ class Product(BaseModel):
     price: float
     rating: float
     purchases: int
+
+
+# Pydantic models
+class PlanFeatures(BaseModel):
+    max_detections_per_day: int
+    analytics_enabled: bool
+    basic_analytics: Optional[bool] = False
+    advanced_analytics: Optional[bool] = False
+    realtime_analytics: Optional[bool] = False
+    email_support: bool
+    mobile_camera_integration: bool
+    basic_invoice_generation: bool
+    api_access: bool
+    priority_support: bool
+    multi_camera_support: bool
+    custom_training: bool
+    advanced_reporting: Optional[bool] = False
+    dedicated_support_manager: Optional[bool] = False
+    custom_ai_model_training: Optional[bool] = False
+    white_label_solution: Optional[bool] = False
+    advanced_integrations: Optional[bool] = False
+    custom_hardware_setup: Optional[bool] = False
+    onsite_training: Optional[bool] = False
+
+class SubscriptionPlan(BaseModel):
+    plan_id: str
+    name: str
+    price: str
+    currency: str
+    duration_months: int
+    features: PlanFeatures
+    color: str
+    popular: bool
+    is_active: bool
+    created_at: str
+    updated_at: str
 
 # GET next ID using atomic update
 def get_next_product_id():
@@ -67,3 +110,15 @@ def add_products(products: List[Product]):
 def get_products():
     response = product_table.scan()
     return response.get("Items", [])
+
+
+@app.get("/plans", response_model=List[SubscriptionPlan])
+def get_subscription_plans():
+    response = plan_table.scan()
+    plans = response.get("Items", [])
+
+    # Convert nested dicts as per the PlanFeatures model
+    for plan in plans:
+        if isinstance(plan.get("features"), dict):
+            plan["features"] = PlanFeatures(**plan["features"])
+    return plans
