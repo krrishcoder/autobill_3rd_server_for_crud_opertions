@@ -312,6 +312,12 @@ async def create_user_record(user_data: UserRegistration) -> Dict[str, Any]:
     except ClientError as e:
         logger.error(f"Error creating user: {e}")
         raise HTTPException(status_code=500, detail="Failed to create user")
+        
+def safe_int(value) -> int:
+    if isinstance(value, Decimal):
+        return int(value)
+    return int(value)
+
 
 async def create_subscription_record(user_data: UserRegistration, plan_data: Dict[str, Any]) -> str:
     """Create subscription record in DynamoDB"""
@@ -378,7 +384,7 @@ async def create_subscription_record(user_data: UserRegistration, plan_data: Dic
             'shop_name': user_data.shop_name,
             'amount_paid': Decimal(plan_data.get('price', '0')) ,
             'auto_renew': True,
-            'ttl': expiration_timestamp + (30 * 24 * 60 * 60)  # TTL 30 days after expiration
+            'ttl': safe_int(expiration_timestamp) + 2592000  # TTL 30 days after expiration ttl = 
         }
         expiration_table.put_item(Item=expiration_item)
         
