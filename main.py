@@ -320,7 +320,7 @@ async def create_subscription_record(user_data: UserRegistration, plan_data: Dic
     
     # Calculate expiration date
     expiration_date = calculate_expiration_date(now, plan_data.get('duration_months', 1))
-    expiration_timestamp = datetime_to_timestamp(expiration_date)
+    expiration_timestamp =  int(datetime_to_timestamp(expiration_date))
     
     # Create features snapshot from plan
     features_snapshot = {
@@ -371,7 +371,7 @@ async def create_subscription_record(user_data: UserRegistration, plan_data: Dic
             'user_id': user_data.user_id,
             'subscription_id': subscription_id,
             'plan_id': user_data.selected_plan,
-            'expiration_timestamp': int(datetime_to_timestamp(expiration_date)),
+            'expiration_timestamp': expiration_timestamp,
             'status': 'active',
             'email': user_data.email,
             'telegram_user_id': user_data.telegram_user_id,
