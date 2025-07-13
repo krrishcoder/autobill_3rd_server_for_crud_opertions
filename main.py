@@ -327,6 +327,9 @@ async def create_subscription_record(user_data: UserRegistration, plan_data: Dic
         key: value for key, value in plan_data.get('features', {}).items()
         if key in ['max_detections_per_day', 'analytics_enabled', 'advanced_analytics', 'api_access', 'priority_support']
     }
+
+
+
     
     # Initialize usage stats
     usage_stats = {
@@ -347,7 +350,7 @@ async def create_subscription_record(user_data: UserRegistration, plan_data: Dic
         'auto_renew': True,
         'payment_method': '',  # Will be updated after payment
         'payment_id': '',      # Will be updated after payment
-        'amount_paid': plan_data.get('price', '0'),
+        'amount_paid': Decimal(plan_data.get('price', '0')),
         'currency': plan_data.get('currency', 'INR'),
         'duration_months': plan_data.get('duration_months', 1),
         'features_snapshot': features_snapshot,
@@ -373,7 +376,7 @@ async def create_subscription_record(user_data: UserRegistration, plan_data: Dic
             'email': user_data.email,
             'telegram_user_id': user_data.telegram_user_id,
             'shop_name': user_data.shop_name,
-            'amount_paid': plan_data.get('price', '0'),
+            'amount_paid': Decimal(plan_data.get('price', '0')) ,
             'auto_renew': True,
             'ttl': expiration_timestamp + (30 * 24 * 60 * 60)  # TTL 30 days after expiration
         }
