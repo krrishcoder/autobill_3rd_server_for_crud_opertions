@@ -103,79 +103,8 @@ class SubscriptionPlan(BaseModel):
     created_at: str
     updated_at: str
 
-# # GET next ID using atomic update
-# def get_next_product_id():
-#     response = counter_table.update_item(
-#         Key={"counter_name": "product_id"},
-#         UpdateExpression="SET last_id = last_id + :inc",
-#         ExpressionAttributeValues={":inc": 1},
-#         ReturnValues="UPDATED_NEW"
-#     )
-#     return int(response['Attributes']['last_id'])
-
-# # POST endpoint to add products
-# from decimal import Decimal
-
-# @app.post("/add-products")
-# def add_products(products: List[Product]):
-#     with product_table.batch_writer() as batch:
-#         for product in products:
-#             new_id = get_next_product_id()
-#             item = product.dict()
-
-#             # Convert float values to Decimal
-#             for key in ['price', 'rating']:
-#                 item[key] = Decimal(str(item[key]))
-
-#             item['id'] = new_id
-#             batch.put_item(Item=item)
-#     return {"message": "Products added successfully"}
 
 
-
-# # GET endpoint to fetch all products
-# @app.get("/get-products")
-# def get_products():
-#     response = product_table.scan()
-#     return response.get("Items", [])
-
-
-# @app.get("/plans", response_model=List[SubscriptionPlan])
-# def get_subscription_plans():
-#     response = plan_table.scan()
-#     plans = response.get("Items", [])
-
-#     # Convert nested dicts as per the PlanFeatures model
-#     for plan in plans:
-#         if isinstance(plan.get("features"), dict):
-#             plan["features"] = PlanFeatures(**plan["features"])
-#     return plans
-
-
-
-
-
-# Pydantic models
-# class PlanFeatures(BaseModel):
-#     max_detections_per_day: int
-#     analytics_enabled: bool = False
-#     basic_analytics: bool = False
-#     advanced_analytics: bool = False
-#     realtime_analytics: bool = False
-#     email_support: bool = False
-#     priority_support: bool = False
-#     dedicated_support_manager: bool = False
-#     mobile_camera_integration: bool = False
-#     multi_camera_support: bool = False
-#     basic_invoice_generation: bool = False
-#     advanced_reporting: bool = False
-#     api_access: bool = False
-#     custom_training: bool = False
-#     custom_ai_model_training: bool = False
-#     white_label_solution: bool = False
-#     advanced_integrations: bool = False
-#     custom_hardware_setup: bool = False
-#     onsite_training: bool = False
 
 class PlanDetails(BaseModel):
     plan_id: str
