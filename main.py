@@ -554,7 +554,7 @@ async def register_user(user_data: UserRegistration):
         user_record = await create_user_record(user_data)
         
         # Create subscription record
-        subscription_id = await create_subscription_record(user_data, plan_data)
+      #  subscription_id = await create_subscription_record(user_data, plan_data)
         
         logger.info(f"User registration completed: {user_data.user_id}")
         
@@ -563,7 +563,7 @@ async def register_user(user_data: UserRegistration):
             message="User registered successfully",
             user_id=user_data.user_id,
             shop_id=user_data.shop_id,
-            subscription_id=subscription_id
+            subscription_id="testing"
         )
         
     except HTTPException:
