@@ -557,7 +557,7 @@ async def register_user(user_data: UserRegistration):
         user_record = await create_user_record(user_data)
         
         # Create subscription record
-      #  subscription_id = await create_subscription_record(user_data, plan_data)
+        subscription_id = await create_subscription_record(user_data, plan_data)
         
         logger.info(f"User registration completed: {user_data.user_id}")
         
