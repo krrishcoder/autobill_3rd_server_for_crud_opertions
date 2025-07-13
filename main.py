@@ -371,7 +371,7 @@ async def create_subscription_record(user_data: UserRegistration, plan_data: Dic
             'user_id': user_data.user_id,
             'subscription_id': subscription_id,
             'plan_id': user_data.selected_plan,
-            'expiration_timestamp': expiration_timestamp,
+            'expiration_timestamp': int(datetime_to_timestamp(expiration_date)),
             'status': 'active',
             'email': user_data.email,
             'telegram_user_id': user_data.telegram_user_id,
