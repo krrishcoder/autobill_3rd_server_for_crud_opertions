@@ -55,6 +55,11 @@ users_table = dynamodb.Table('autobill-users')
 subscriptions_table = dynamodb.Table('autobill-user-subscriptions')
 expiration_table = dynamodb.Table('autobill-subscription-expiration')
 
+# DynamoDB table for user products
+user_products_table = dynamodb.Table('UserProducts')
+# DynamoDB table for user bills
+user_bills_table = dynamodb.Table('UserBills')
+
 # Product model (id will be auto-generated)
 class Product(BaseModel):
     image: str
@@ -138,6 +143,32 @@ class RegistrationResponse(BaseModel):
     user_id: str
     shop_id: str
     subscription_id: Optional[str] = None
+
+class UserProduct(BaseModel):
+    user_id: str
+    product_id: int
+    title: str
+    image: str
+    price: float
+    rating: float
+    purchases: int
+    # Add more fields if you want to allow more customization
+
+class BillItem(BaseModel):
+    product_id: int
+    title: str
+    quantity: int
+    price: float
+    total: float
+
+class Bill(BaseModel):
+    bill_id: str
+    user_id: str
+    shop_name: str
+    items: List[BillItem]
+    total_amount: float
+    created_at: str
+    # Add more fields as needed (e.g., payment_method, customer_name, etc.)
 
 # Helper functions
 def safe_int(value) -> int:
@@ -706,6 +737,98 @@ def get_products():
     response = product_table.scan()
     items = response.get("Items", [])
     return [convert_dynamodb_item(item) for item in items]
+
+@app.post("/user-products/{user_id}/{product_id}")
+def add_user_product(user_id: str, product_id: int, price: float):
+    """
+    Add a product to a user's shop with a custom price.
+    Copies product details from the common Products table.
+    """
+    # Get product from common table
+    response = product_table.get_item(Key={'id': product_id})
+    if 'Item' not in response:
+        raise HTTPException(status_code=404, detail="Product not found")
+    product = response['Item']
+
+    # Prepare user product item
+    user_product = {
+        'user_id': user_id,
+        'product_id': product_id,
+        'title': product['title'],
+        'image': product['image'],
+        'price': Decimal(str(price)),  # User's custom price
+        'rating': product['rating'],
+        'purchases': product['purchases'],
+    }
+    user_products_table.put_item(Item=user_product)
+    return {"message": "Product added to user shop"}
+
+@app.get("/user-products/{user_id}")
+def get_user_products(user_id: str):
+    """
+    Get all products for a user/shop.
+    """
+    response = user_products_table.query(
+        KeyConditionExpression='user_id = :uid',
+        ExpressionAttributeValues={':uid': user_id}
+    )
+    return [convert_dynamodb_item(item) for item in response.get('Items', [])]
+
+@app.put("/user-products/{user_id}/{product_id}")
+def update_user_product(user_id: str, product_id: int, price: float):
+    """
+    Update the price of a user's product.
+    """
+    user_products_table.update_item(
+        Key={'user_id': user_id, 'product_id': product_id},
+        UpdateExpression='SET price = :price',
+        ExpressionAttributeValues={':price': Decimal(str(price))}
+    )
+    return {"message": "Product price updated"}
+
+@app.delete("/user-products/{user_id}/{product_id}")
+def delete_user_product(user_id: str, product_id: int):
+    """
+    Delete a product from a user's shop.
+    """
+    user_products_table.delete_item(
+        Key={'user_id': user_id, 'product_id': product_id}
+    )
+    return {"message": "Product deleted from user shop"}
+
+@app.post("/user-bills/{user_id}")
+def save_user_bill(user_id: str, bill: Bill):
+    """
+    Save a bill to DynamoDB for the given user/shopkeeper.
+    """
+    # Ensure bill_id and created_at are set if not provided
+    from datetime import datetime
+    import uuid
+    now = datetime.now().isoformat()
+    bill_data = bill.dict()
+    if not bill_data.get('bill_id'):
+        bill_data['bill_id'] = f"bill_{int(datetime.now().timestamp())}_{uuid.uuid4().hex[:8]}"
+    if not bill_data.get('created_at'):
+        bill_data['created_at'] = now
+    bill_data['user_id'] = user_id
+    # Convert float values to Decimal for DynamoDB
+    bill_data['total_amount'] = Decimal(str(bill_data['total_amount']))
+    for item in bill_data['items']:
+        item['price'] = Decimal(str(item['price']))
+        item['total'] = Decimal(str(item['total']))
+    user_bills_table.put_item(Item=bill_data)
+    return {"message": "Bill saved successfully", "bill_id": bill_data['bill_id']}
+
+@app.get("/user-bills/{user_id}")
+def get_user_bills(user_id: str):
+    """
+    Get all bills for a user/shopkeeper.
+    """
+    response = user_bills_table.query(
+        KeyConditionExpression='user_id = :uid',
+        ExpressionAttributeValues={':uid': user_id}
+    )
+    return [convert_dynamodb_item(item) for item in response.get('Items', [])]
 
 @app.get("/health")
 async def health_check():
