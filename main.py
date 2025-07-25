@@ -789,13 +789,13 @@ def get_products():
     return [convert_dynamodb_item(item) for item in items]
 
 @app.post("/user-products/{user_id}/{product_id}")
-def add_user_product(user_id: str, product_id: int, price: float):
+def add_user_product(user_id: str, product_id: str, price: float):
     """
     Add a product to a user's shop with a custom price.
     Copies product details from the common Products table.
     """
     # Get product from common table
-    response = product_table.get_item(Key={'id': product_id})
+    response = product_table.get_item(Key={'id': int(product_id)})
     if 'Item' not in response:
         raise HTTPException(status_code=404, detail="Product not found")
     product = response['Item']
