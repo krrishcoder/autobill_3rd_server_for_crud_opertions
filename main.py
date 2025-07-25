@@ -108,17 +108,17 @@ class PlanDetails(BaseModel):
     price: str
     duration_months: int
 
-# class Plan(BaseModel):
-#     plan_id: str
-#     name: str
-#     price: str
-#     currency: str = "INR"
-#     duration_months: int
-#     features: PlanFeatures
-#     color: str
-#     popular: bool = False
-#     is_active: bool = True
-#     description: Optional[str] = None
+class Plan(BaseModel):
+    plan_id: str
+    name: str
+    price: str
+    currency: str = "INR"
+    duration_months: int
+    features: PlanFeatures
+    color: str
+    popular: bool = False
+    is_active: bool = True
+    description: Optional[str] = None
 
 class UsageStats(BaseModel):
     detections_used_today: int = 0
