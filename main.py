@@ -790,7 +790,7 @@ def get_products():
     return [convert_dynamodb_item(item) for item in items]
 
 @app.post("/user-products/{user_id}/{product_id}")
-def add_user_product(user_id: str, product_id: int, price: float):
+def add_user_product(user_id: str, product_id: int, pri-ce: float):
     """
     Add a product to a user's shop with a custom price.
     Copies product details from the common Products table.
