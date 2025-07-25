@@ -11,7 +11,7 @@ from uuid import uuid4
 from datetime import datetime
 from typing import Optional, List
 
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 from typing import Optional, Dict, Any, List
@@ -169,6 +169,21 @@ class Bill(BaseModel):
     total_amount: float
     created_at: str
     # Add more fields as needed (e.g., payment_method, customer_name, etc.)
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+class LoginResponse(BaseModel):
+    success: bool
+    message: str
+    user_id: str = None
+    name: str = None
+    email: EmailStr = None
+    shop_name: str = None
+    telegram_user_id: str = None
+    phone: str = None
+    # Add more fields as needed
 
 # Helper functions
 def safe_int(value) -> int:
@@ -545,6 +560,42 @@ async def register_user(user_data: UserRegistration):
             status_code=500, 
             detail="An unexpected error occurred during registration"
         )
+
+@app.post("/login", response_model=LoginResponse)
+async def login_user(login: LoginRequest):
+    """
+    Login endpoint: verifies email and password (hashed).
+    """
+    try:
+        # Find user by email
+        response = users_table.scan(
+            FilterExpression='email = :email',
+            ExpressionAttributeValues={':email': login.email}
+        )
+        if not response['Items']:
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+        user = response['Items'][0]
+        # Check password hash
+        if user['password_hash'] != hash_password(login.password):
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+        # Prepare response (exclude password_hash)
+        user_info = convert_dynamodb_item(user)
+        user_info.pop('password_hash', None)
+        return LoginResponse(
+            success=True,
+            message="Login successful",
+            user_id=user_info.get('user_id'),
+            name=user_info.get('name'),
+            email=user_info.get('email'),
+            shop_name=user_info.get('shop_name'),
+            telegram_user_id=user_info.get('telegram_user_id'),
+            phone=user_info.get('phone', None)
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error during login: {e}")
+        raise HTTPException(status_code=500, detail="An unexpected error occurred during login")
 
 @app.get("/user/{user_id}")
 async def get_user(user_id: str):
