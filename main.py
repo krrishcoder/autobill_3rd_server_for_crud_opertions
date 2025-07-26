@@ -837,7 +837,7 @@ def update_user_product(user_id: str, product_id: str, price: float):
     return {"message": "Product price updated"}
 
 @app.delete("/user-products/{user_id}/{product_id}")
-def delete_user_product(user_id: str, product_id: int):
+def delete_user_product(user_id: str, product_id: str):
     """
     Delete a product from a user's shop.
     """
