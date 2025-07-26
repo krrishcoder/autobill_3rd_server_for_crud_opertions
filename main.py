@@ -830,7 +830,7 @@ def update_user_product(user_id: str, product_id: str, price: float):
     Update the price of a user's product.
     """
     user_products_table.update_item(
-        Key={'user_id': user_id, 'product_id': int(product_id)},
+        Key={'user_id': user_id, 'product_id': product_id },
         UpdateExpression='SET price = :price',
         ExpressionAttributeValues={':price': Decimal(str(price))}
     )
